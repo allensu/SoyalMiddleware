@@ -42,7 +42,7 @@ php artisan soyal:soyal-message-server start
 ## 排程啟動
 - Async Process
 ```
-php artisan queue:work --tries=3 --sleep=3
+php artisan queue:work
 ```
 
 ## 設定排程 (ubuntu's crontab)
