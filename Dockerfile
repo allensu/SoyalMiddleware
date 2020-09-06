@@ -5,6 +5,7 @@ RUN apt update && apt install -y \
         libfreetype6-dev \
         libjpeg62-turbo-dev \
         libpng-dev \
+        libpq-dev \
         git \
         wget \
         zip \
@@ -12,6 +13,9 @@ RUN apt update && apt install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg  \
     && docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-enable gd \
+    && docker-php-ext-configure pgsql  \
+    && docker-php-ext-install -j$(nproc) pgsql \
+    && docker-php-ext-enable pgsql \
     && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
     && php composer.phar install \
     && mkdir -p storage/api-docs \
