@@ -1,0 +1,25 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - if test "${CODEBUILD_WEBHOOK_TRIGGER#*tag/}" != "$CODEBUILD_WEBHOOK_TRIGGER"; then export IMAGE_TAG="$(echo "$CODEBUILD_WEBHOOK_TRIGGER" | sed -e "s/tag\///g")" && echo "Change IMAGE_TAG to $IMAGE_TAG"; fi
+      - if test "${GITHUB_REF#*refs/tags/}" != "$GITHUB_REF"; then export IMAGE_TAG="$(echo "$GITHUB_REF" | sed -e "s/refs\/tags\///g")" && echo "Change IMAGE_TAG to $IMAGE_TAG"; fi
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:build$CODEBUILD_BUILD_NUMBER
+      - if [ "$CODEBUILD_SOURCE_VERSION" != "" ]; then docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION; fi
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:build$CODEBUILD_BUILD_NUMBER
+      - if [ "$CODEBUILD_SOURCE_VERSION" != "" ]; then docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$CODEBUILD_SOURCE_VERSION; fi
+      - aws codebuild start-build --project-name morespace-deployments --environment-variables-override name=APP,value=$IMAGE_REPO_NAME,type=PLAINTEXT name=IMAGE,value=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG_PREFIX$CODEBUILD_BUILD_NUMBER,type=PLAINTEXT
