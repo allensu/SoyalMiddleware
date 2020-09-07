@@ -1,4 +1,4 @@
-FROM php:7.4-fpm
+FROM php:7.2-fpm
 WORKDIR /code
 COPY . .
 RUN apt update && apt install -y \
@@ -9,8 +9,8 @@ RUN apt update && apt install -y \
         git \
         wget \
         zip \
-    && wget https://raw.githubusercontent.com/composer/getcomposer.org/76a7060ccb93902cd7576b67264ad91c8a2700e2/web/installer -O - -q | php -- \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg  \
+    && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
+    && docker-php-ext-configure gd \
     && docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-enable gd \
     && docker-php-ext-configure pgsql  \
@@ -19,7 +19,7 @@ RUN apt update && apt install -y \
     && docker-php-ext-configure pdo_pgsql  \
     && docker-php-ext-install -j$(nproc) pdo_pgsql \
     && docker-php-ext-enable pdo_pgsql \
-    && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
+    && wget https://raw.githubusercontent.com/composer/getcomposer.org/76a7060ccb93902cd7576b67264ad91c8a2700e2/web/installer -O - -q | php -- \
     && php composer.phar install \
     && mkdir -p storage/api-docs \
                 storage/debugbar \
