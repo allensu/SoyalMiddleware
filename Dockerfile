@@ -19,6 +19,9 @@ RUN apt update && apt install -y \
     && docker-php-ext-configure pdo_pgsql  \
     && docker-php-ext-install -j$(nproc) pdo_pgsql \
     && docker-php-ext-enable pdo_pgsql \
+    && docker-php-ext-configure sockets  \
+    && docker-php-ext-install -j$(nproc) sockets \
+    && docker-php-ext-enable sockets \
     && wget https://raw.githubusercontent.com/composer/getcomposer.org/76a7060ccb93902cd7576b67264ad91c8a2700e2/web/installer -O - -q | php -- \
     && php composer.phar install \
     && mkdir -p storage/api-docs \
