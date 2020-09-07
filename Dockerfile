@@ -1,4 +1,4 @@
-FROM php:7.2-fpm
+FROM php:7.3-fpm
 WORKDIR /code
 COPY . .
 RUN apt update && apt install -y \
@@ -22,6 +22,9 @@ RUN apt update && apt install -y \
     && docker-php-ext-configure sockets  \
     && docker-php-ext-install -j$(nproc) sockets \
     && docker-php-ext-enable sockets \
+    && docker-php-ext-configure pcntl  \
+    && docker-php-ext-install -j$(nproc) pcntl \
+    && docker-php-ext-enable pcntl \
     && wget https://raw.githubusercontent.com/composer/getcomposer.org/76a7060ccb93902cd7576b67264ad91c8a2700e2/web/installer -O - -q | php -- \
     && php composer.phar install \
     && mkdir -p storage/api-docs \
