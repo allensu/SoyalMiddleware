@@ -93,21 +93,28 @@ class WorkermanHandler
 
         Log::info(print_r(json_encode($soyalUidRecord), true));
 
+        try {
+            $odooServerApi = Config::get('soyal.odooServerApi');
 
-        $payload = json_encode($soyalUidRecord);
-        Log::info($payload);
+            Log::info($odooServerApi.'device-record');
 
-        $odooServerApi = Config::get('soyal.odooServerApi');
+            $payload = json_encode($soyalUidRecord);
+            $client = new Client;
+            $response = $client->request('POST', $odooServerApi.'device-record', [
+                'body' => $payload
+            ]);
 
-        $client = new Client;
-        $response = $client->request('POST', $odooServerApi.'device-record', [
-            'body' => $payload
-        ]);
+            $body = $response->getBody();
+            $returnData = json_decode($body);
 
-        $body = $response->getBody();
-        $returnData = json_decode($body);
-
-        Log::info(json_encode($returnData));
+            Log::info(json_encode($returnData));
+        } catch(RequestException $ex) {
+            Log::info("requestException to moreapi");
+            Log::error($ex);
+        } catch(Exception $ex) {
+            Log::info("exception to moreapi");
+            Log::error($ex);
+        }
     }
 
     // 处理客户端断开
