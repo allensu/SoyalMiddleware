@@ -32,4 +32,5 @@ RUN apt update && apt install -y \
                 storage/framework \
                 storage/framework/cache \
                 storage/framework/sessions \
-                storage/framework/views
+                storage/framework/views \
+                storage/logs
